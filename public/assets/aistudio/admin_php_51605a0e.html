@@ -1,0 +1,1694 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>VidoPro AI — Admin Control Center</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel:#111a2e;
+      --panel2:#0f1828;
+      --line:#22304d;
+      --txt:#eaf2ff;
+      --muted:#9fb0d0;
+      --accent:#4f8cff;
+      --ok:#28d17c;
+      --warn:#ffb020;
+      --bad:#ff5c5c;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,Arial,sans-serif;
+      background:linear-gradient(180deg,#08101d,#0b1220);
+      color:var(--txt);
+    }
+    a{color:var(--accent);text-decoration:none}
+    .hidden{display:none!important}
+    .wrap{max-width:1400px;margin:0 auto;padding:18px}
+    .card{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:16px;
+      margin-bottom:16px;
+    }
+    .loginBox{
+      max-width:560px;
+      margin:70px auto;
+    }
+    h1,h2,h3{margin:0 0 10px}
+    .muted{color:var(--muted);font-size:13px}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    .row > *{flex:1}
+    label{display:block;font-size:12px;color:var(--muted);margin:10px 0 5px}
+    input,select,textarea{
+      width:100%;
+      background:var(--panel2);
+      color:var(--txt);
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:10px 12px;
+      outline:none;
+    }
+    textarea{min-height:120px;resize:vertical;font-family:ui-monospace,monospace;font-size:12px}
+    button{
+      background:var(--accent);
+      color:#fff;
+      border:0;
+      border-radius:12px;
+      padding:10px 14px;
+      cursor:pointer;
+      font-weight:700;
+    }
+    button.secondary{background:#22304d}
+    button.danger{background:var(--bad)}
+    button.small{padding:6px 9px;font-size:12px;border-radius:9px}
+    .topbar{
+      position:sticky;top:0;z-index:50;
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      padding:12px 18px;
+      background:rgba(8,14,25,.92);
+      border-bottom:1px solid var(--line);
+      backdrop-filter:blur(8px);
+    }
+    .brand{font-weight:900;letter-spacing:.3px}
+    .pill{
+      padding:6px 10px;border-radius:999px;border:1px solid var(--line);
+      font-size:12px;color:var(--muted)
+    }
+    .pill.ok{color:var(--ok);border-color:rgba(40,209,124,.35)}
+    .tabs{
+      display:flex;gap:8px;flex-wrap:wrap;margin:16px 0;
+    }
+    .tabBtn{
+      background:var(--panel);
+      border:1px solid var(--line);
+      color:var(--txt);
+      padding:9px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:700;
+    }
+    .tabBtn.active{background:var(--accent)}
+    table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:13px;
+    }
+    th,td{
+      border-bottom:1px solid var(--line);
+      padding:8px 8px;
+      text-align:left;
+      vertical-align:top;
+    }
+    th{color:var(--muted);font-size:12px}
+    .tableWrap{overflow:auto;max-height:650px;border:1px solid var(--line);border-radius:12px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    @media(max-width:900px){.grid{grid-template-columns:1fr}}
+    .notice{
+      background:rgba(79,140,255,.08);
+      border:1px solid rgba(79,140,255,.25);
+      padding:10px 12px;
+      border-radius:12px;
+      color:var(--txt);
+      font-size:13px;
+    }
+    .warn{
+      background:rgba(255,176,32,.08);
+      border:1px solid rgba(255,176,32,.25);
+    }
+    code{
+      background:#0a101c;
+      border:1px solid var(--line);
+      padding:2px 6px;
+      border-radius:7px;
+      font-size:12px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN -->
+  <div id="loginView" class="wrap">
+    <div class="card loginBox">
+      <h1>VidoPro AI</h1>
+      <div class="muted">CONTROL CENTER — PHP + MySQL</div>
+
+      <div class="notice" style="margin-top:12px">
+        Admin panel ko HTTPS ya localhost par hi kholo. API URL aur API Secret sahi hona chahiye.
+      </div>
+
+      <label>API URL</label>
+      <input id="apiUrl" placeholder="https://yourdomain.com/vidopro-api/index.php">
+
+      <label>API Secret</label>
+      <input id="apiSecret" type="password" placeholder="config.php wala API_SECRET">
+
+      <div class="row">
+        <div>
+          <label>Admin ID</label>
+          <input id="adminUser" placeholder="admin">
+        </div>
+        <div>
+          <label>Password</label>
+          <input id="adminPass" type="password" placeholder="Admin@123">
+        </div>
+        <div>
+          <label>2FA PIN</label>
+          <input id="adminPin" type="password" placeholder="123456">
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:14px">
+        <button onclick="saveConfig()">Save Config</button>
+        <button class="secondary" onclick="testApi()">Test API</button>
+        <button onclick="login()">Sign In</button>
+      </div>
+
+      <div id="loginMsg" class="muted" style="margin-top:10px"></div>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div id="appView" class="hidden">
+    <div class="topbar">
+      <div>
+        <span class="brand">VidoPro AI</span>
+        <span class="muted">CONTROL CENTER</span>
+      </div>
+
+      <div class="row" style="max-width:700px">
+        <div id="apiStatus" class="pill">API: -</div>
+        <div id="adminStatus" class="pill ok">Admin: -</div>
+      </div>
+
+      <div class="row" style="justify-content:flex-end;max-width:320px">
+        <button class="secondary small" onclick="openConfig()">⚙ API Config</button>
+        <button class="danger small" onclick="logout()">Logout</button>
+      </div>
+    </div>
+
+    <div class="wrap">
+
+      <div class="tabs">
+        <button class="tabBtn active" data-tab="skills" onclick="setTab('skills')">Skills / Drive Links</button>
+        <button class="tabBtn" data-tab="users" onclick="setTab('users')">Users</button>
+        <button class="tabBtn" data-tab="plans" onclick="setTab('plans')">Plans</button>
+        <button class="tabBtn" data-tab="features" onclick="setTab('features')">Features</button>
+        <button class="tabBtn" data-tab="coins" onclick="setTab('coins')">Coins</button>
+        <button class="tabBtn" data-tab="updates" onclick="setTab('updates')">Updates</button>
+        <button class="tabBtn" data-tab="reports" onclick="setTab('reports')">Reports</button>
+        <button class="tabBtn" data-tab="audit" onclick="setTab('audit')">Audit</button>
+        <button class="tabBtn" data-tab="tickets" onclick="setTab('tickets')">Tickets</button>
+        <button class="tabBtn" data-tab="settings" onclick="setTab('settings')">Settings</button>
+      </div>
+
+      <!-- SKILLS -->
+      <div id="tab-skills" class="tabSection">
+        <div class="card">
+          <h2>🧠 Update Skills (Drive Links) — Text + Image</h2>
+          <div class="muted">
+            Legit Mode: reference-image generation = IMAGE skill, text-only = TEXT skill.
+            Prime Mode: same. Koi link empty hua to legacy/fallback link use hoga.
+          </div>
+
+          <div class="grid" style="margin-top:14px">
+            <div class="card">
+              <h3>Legit Mode</h3>
+
+              <label>Text Skill (Drive Link)</label>
+              <input id="legit_text_skill" placeholder="https://drive.google.com/...">
+
+              <label>Image Skill (Drive Link)</label>
+              <input id="legit_image_skill" placeholder="https://drive.google.com/...">
+
+              <div class="row" style="margin-top:10px">
+                <button onclick="saveSkill('legit_text')">Save Text</button>
+                <button onclick="saveSkill('legit_image')">Save Image</button>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3>Prime Mode</h3>
+
+              <label>Text Skill (Drive Link)</label>
+              <input id="prime_text_skill" placeholder="https://drive.google.com/...">
+
+              <label>Image Skill (Drive Link)</label>
+              <input id="prime_image_skill" placeholder="https://drive.google.com/...">
+
+              <div class="row" style="margin-top:10px">
+                <button onclick="saveSkill('prime_text')">Save Text</button>
+                <button onclick="saveSkill('prime_image')">Save Image</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Legacy / Fallback Link</h3>
+
+            <label>Fallback Skill Link</label>
+            <input id="legacy_skill_link" placeholder="https://drive.google.com/...">
+
+            <div class="row" style="margin-top:10px">
+              <button onclick="saveSkill('legacy')">Save Fallback</button>
+              <button class="secondary" onclick="loadSkills()">Reload Skills</button>
+            </div>
+
+            <div class="notice warn" style="margin-top:12px">
+              Agar tumhare purane setting keys alag hain, to JS me <code>SKILL_KEYS</code> object me key names change kar do.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- USERS -->
+      <div id="tab-users" class="tabSection hidden">
+        <div class="card">
+          <div class="row" style="align-items:flex-end">
+            <div style="flex:2">
+              <label>Search</label>
+              <input id="userSearch" placeholder="user id / phone / name / plan" oninput="renderUsers()">
+            </div>
+            <div style="flex:0">
+              <button class="secondary" onclick="loadUsers()">Reload</button>
+            </div>
+            <div style="flex:0">
+              <button onclick="openUserModal('create')">+ New User</button>
+            </div>
+          </div>
+
+          <div class="tableWrap" style="margin-top:12px">
+            <table>
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Phone</th>
+                  <th>Plan</th>
+                  <th>Status</th>
+                  <th>Expiry</th>
+                  <th>Coins</th>
+                  <th>Gen</th>
+                  <th>Device</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="usersTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- PLANS -->
+      <div id="tab-plans" class="tabSection hidden">
+        <div class="grid">
+          <div class="card">
+            <h2>Plans</h2>
+            <div class="row">
+              <button class="secondary" onclick="loadPlans()">Reload</button>
+              <button onclick="newPlanTemplate()">+ New Plan JSON</button>
+            </div>
+
+            <div class="tableWrap" style="margin-top:12px">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>Annual</th>
+                    <th>Days</th>
+                    <th>Order</th>
+                    <th>Show</th>
+                    <th>Active</th>
+                    <th>Edit</th>
+                  </tr>
+                </thead>
+                <tbody id="plansTable"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Plan Editor (JSON)</h3>
+            <textarea id="planJson" spellcheck="false"></textarea>
+            <div class="row" style="margin-top:10px">
+              <button onclick="savePlan()">Save Plan</button>
+              <button class="secondary" onclick="loadPlans()">Discard</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FEATURES -->
+      <div id="tab-features" class="tabSection hidden">
+        <div class="grid">
+          <div class="card">
+            <h2>Features</h2>
+            <div class="row">
+              <button class="secondary" onclick="loadFeatures()">Reload</button>
+            </div>
+
+            <div class="tableWrap" style="margin-top:12px">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Key</th>
+                    <th>Name</th>
+                    <th>Status</th>
+                    <th>Min Plan</th>
+                    <th>Beta</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="featuresTable"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Create / Edit Feature</h3>
+
+            <label>Feature Key</label>
+            <input id="feature_key" placeholder="text_to_video">
+
+            <label>Display Name</label>
+            <input id="feature_display_name" placeholder="Text To Video">
+
+            <label>Status</label>
+            <select id="feature_status">
+              <option value="on">on</option>
+              <option value="off">off</option>
+              <option value="soon">soon</option>
+              <option value="beta">beta</option>
+            </select>
+
+            <label>Min Plan</label>
+            <input id="feature_min_plan" placeholder="PLAN_TRIAL_SUB">
+
+            <label>Message EN</label>
+            <input id="feature_message_en" placeholder="Coming soon">
+
+            <label>Message HI</label>
+            <input id="feature_message_hi" placeholder="जल्द आ रहा है">
+
+            <div class="row" style="margin-top:10px">
+              <button onclick="createFeature()">Create / Upsert</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COINS -->
+      <div id="tab-coins" class="tabSection hidden">
+        <div class="grid">
+          <div class="card">
+            <h2>Coin Operation</h2>
+
+            <label>User ID</label>
+            <input id="coin_user_id" placeholder="DLH-1042">
+
+            <label>Amount</label>
+            <input id="coin_amount" type="number" value="100">
+
+            <label>Reason</label>
+            <input id="coin_reason" placeholder="manual adjustment">
+
+            <div class="row" style="margin-top:10px">
+              <button onclick="coinOp('set')">Set</button>
+              <button onclick="coinOp('add')">Add</button>
+              <button class="danger" onclick="coinOp('deduct')">Deduct</button>
+              <button class="secondary" onclick="loadLedger()">Reload Ledger</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Ledger</h3>
+            <div class="tableWrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Time</th>
+                    <th>User</th>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Balance</th>
+                    <th>Reason</th>
+                  </tr>
+                </thead>
+                <tbody id="ledgerTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- UPDATES -->
+      <div id="tab-updates" class="tabSection hidden">
+        <div class="grid">
+          <div class="card">
+            <h2>Publish Update</h2>
+
+            <label>Update ZIP File</label>
+            <input id="update_file" type="file">
+
+            <label>Version</label>
+            <input id="update_version" placeholder="1.0.9">
+
+            <label>Changelog</label>
+            <textarea id="update_changelog" placeholder="Bug fixes, improvements..."></textarea>
+
+            <div class="row">
+              <div>
+                <label>Target User (blank = ALL)</label>
+                <input id="update_target" placeholder="ALL ya DLH-1042">
+              </div>
+              <div>
+                <label>Rollout %</label>
+                <input id="update_rollout" type="number" value="100">
+              </div>
+              <div>
+                <label>Mandatory</label>
+                <select id="update_mandatory">
+                  <option value="0">No</option>
+                  <option value="1">Yes</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row" style="margin-top:10px">
+              <button onclick="uploadAndPublish()">Upload + Publish</button>
+              <button class="secondary" onclick="loadUpdates()">Reload Updates</button>
+            </div>
+
+            <div class="notice" style="margin-top:12px">
+              Ye file ko pehle PHP <code>upload_update.php</code> par bhejega, phir <code>/admin/updates publish</code> karega.
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Published Updates</h3>
+            <div class="tableWrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Version</th>
+                    <th>Target</th>
+                    <th>Rollout</th>
+                    <th>Mandatory</th>
+                    <th>Active</th>
+                    <th>Released</th>
+                  </tr>
+                </thead>
+                <tbody id="updatesTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- REPORTS -->
+      <div id="tab-reports" class="tabSection hidden">
+        <div class="card">
+          <div class="row" style="align-items:center;justify-content:space-between">
+            <h2>Reports</h2>
+            <button onclick="loadReports()">Reload</button>
+          </div>
+          <div id="reportsBox" class="muted" style="margin-top:12px">Load reports...</div>
+        </div>
+      </div>
+
+      <!-- AUDIT -->
+      <div id="tab-audit" class="tabSection hidden">
+        <div class="card">
+          <div class="row" style="align-items:center;justify-content:space-between">
+            <h2>Audit Logs</h2>
+            <button onclick="loadAudit()">Reload</button>
+          </div>
+
+          <div class="tableWrap" style="margin-top:12px">
+            <table>
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Admin</th>
+                  <th>Action</th>
+                  <th>Target</th>
+                  <th>New Value</th>
+                </tr>
+              </thead>
+              <tbody id="auditTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TICKETS -->
+      <div id="tab-tickets" class="tabSection hidden">
+        <div class="card">
+          <div class="row" style="align-items:center;justify-content:space-between">
+            <h2>Tickets</h2>
+            <button onclick="loadTickets()">Reload</button>
+          </div>
+
+          <div class="tableWrap" style="margin-top:12px">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>User</th>
+                  <th>Subject</th>
+                  <th>Status</th>
+                  <th>Created</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="ticketsTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div id="tab-settings" class="tabSection hidden">
+        <div class="grid">
+          <div class="card">
+            <h2>Settings</h2>
+            <div class="row">
+              <button class="secondary" onclick="loadSettings()">Reload</button>
+            </div>
+
+            <div class="tableWrap" style="margin-top:12px">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Key</th>
+                    <th>Value</th>
+                  </tr>
+                </thead>
+                <tbody id="settingsTable"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Set Setting</h3>
+
+            <label>Key</label>
+            <input id="setting_key" placeholder="whatsapp_owner">
+
+            <label>Value</label>
+            <textarea id="setting_value" placeholder="value"></textarea>
+
+            <div class="row" style="margin-top:10px">
+              <button onclick="saveSettingForm()">Save Setting</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- USER MODAL -->
+  <div id="userModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px">
+    <div class="card" style="width:980px;max-width:100%;max-height:90vh;overflow:auto">
+      <h2 id="userModalTitle">User</h2>
+
+      <div class="grid">
+        <div>
+          <label>User ID</label>
+          <input id="edit_user_id" placeholder="DLH-1042">
+
+          <label>Name</label>
+          <input id="edit_name">
+
+          <label>Phone</label>
+          <input id="edit_phone">
+
+          <label>Email</label>
+          <input id="edit_email">
+
+          <label>City</label>
+          <input id="edit_city">
+
+          <label>Plan</label>
+          <select id="edit_plan_id"></select>
+
+          <label>Status</label>
+          <select id="edit_status">
+            <option value="pending">pending</option>
+            <option value="active">active</option>
+            <option value="trial">trial</option>
+            <option value="blocked">blocked</option>
+            <option value="suspended">suspended</option>
+          </select>
+        </div>
+
+        <div>
+          <label>Expiry</label>
+          <input id="edit_expiry_date" type="datetime-local">
+
+          <label>Coins</label>
+          <input id="edit_coins" type="number">
+
+          <label>Max Devices</label>
+          <input id="edit_max_devices" type="number">
+
+          <label>Gen Count</label>
+          <input id="edit_gen_count" type="number">
+
+          <label>Device ID</label>
+          <input id="edit_device_id">
+
+          <label>Licence Key (optional)</label>
+          <input id="edit_licence_key" placeholder="change karna ho to fill karo">
+
+          <label>Notes</label>
+          <input id="edit_notes">
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:14px">
+        <button onclick="saveUserModal()">Save</button>
+        <button class="secondary" onclick="closeUserModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const $ = id => document.getElementById(id);
+
+  // ===============================================
+  // CONFIG
+  // ===============================================
+
+  const SKILL_KEYS = {
+    legit_text: "legit_text_skill",
+    legit_image: "legit_image_skill",
+    prime_text: "prime_text_skill",
+    prime_image: "prime_image_skill",
+    legacy: "skill_link"
+  };
+
+  let cfg = {
+    api: localStorage.getItem("vp_api") || "",
+    secret: localStorage.getItem("vp_secret") || ""
+  };
+
+  let usersCache = [];
+  let plansCache = [];
+  let featuresCache = [];
+  let settingsCache = [];
+  let userModalMode = "create";
+
+  function saveConfig() {
+    cfg.api = $("apiUrl").value.trim();
+    cfg.secret = $("apiSecret").value.trim();
+
+    localStorage.setItem("vp_api", cfg.api);
+    localStorage.setItem("vp_secret", cfg.secret);
+
+    $("loginMsg").textContent = "Config saved.";
+    renderApiStatus();
+  }
+
+  function loadConfigInputs() {
+    $("apiUrl").value = cfg.api;
+    $("apiSecret").value = cfg.secret;
+    renderApiStatus();
+  }
+
+  function openConfig() {
+    const api = prompt("API URL", cfg.api);
+    if (api !== null) cfg.api = api.trim();
+
+    const secret = prompt("API Secret", cfg.secret);
+    if (secret !== null) cfg.secret = secret.trim();
+
+    localStorage.setItem("vp_api", cfg.api);
+    localStorage.setItem("vp_secret", cfg.secret);
+
+    loadConfigInputs();
+  }
+
+  function renderApiStatus() {
+    $("apiStatus").textContent = "API: " + (cfg.api ? cfg.api : "not set");
+  }
+
+  function esc(v) {
+    return String(v ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+  }
+
+  function dt(v) {
+    if (!v) return "";
+    return String(v).replace("T", " ").slice(0, 19);
+  }
+
+  function toLocalInput(v) {
+    if (!v) return "";
+    const d = new Date(v);
+    if (isNaN(d.getTime())) return "";
+    return d.toISOString().slice(0, 16);
+  }
+
+  // ===============================================
+  // CRYPTO / SIGNING
+  // ===============================================
+
+  function buf2hex(buffer) {
+    return Array.from(new Uint8Array(buffer))
+      .map(x => x.toString(16).padStart(2, "0"))
+      .join("");
+  }
+
+  async function sha256Hex(s) {
+    const data = new TextEncoder().encode(s);
+    const digest = await crypto.subtle.digest("SHA-256", data);
+    return buf2hex(digest);
+  }
+
+  async function hmacHex(key, s) {
+    const k = await crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(key),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["sign"]
+    );
+
+    const sig = await crypto.subtle.sign("HMAC", k, new TextEncoder().encode(s));
+    return buf2hex(sig);
+  }
+
+  function stableStringify(v) {
+    if (v === null || v === undefined) return "null";
+    if (typeof v !== "object") return JSON.stringify(v);
+
+    if (Array.isArray(v)) {
+      return "[" + v.map(stableStringify).join(",") + "]";
+    }
+
+    return "{" + Object.keys(v).sort().map(k => {
+      return JSON.stringify(k) + ":" + stableStringify(v[k]);
+    }).join(",") + "}";
+  }
+
+  async function api(endpoint, payload = {}) {
+    if (!cfg.api || !cfg.secret) {
+      throw new Error("API Config missing. API URL + API Secret save karo.");
+    }
+
+    // clean undefined
+    let clean = JSON.parse(JSON.stringify(payload || {}));
+
+    if (endpoint.startsWith("/admin/") && endpoint !== "/admin/login") {
+      const token = localStorage.getItem("vp_token");
+      if (token) clean.token = token;
+    }
+
+    const ts = String(Math.floor(Date.now() / 1000));
+    const nonce = crypto.randomUUID();
+
+    const canon = stableStringify({ ...clean, endpoint });
+    const sig = await hmacHex(cfg.secret, canon + ts + nonce);
+
+    const body = {
+      ...clean,
+      endpoint,
+      ts,
+      nonce,
+      sig
+    };
+
+    const res = await fetch(cfg.api, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+
+    let data = null;
+    try {
+      data = await res.json();
+    } catch (e) {
+      throw new Error("Server ne JSON response nahi diya. URL check karo.");
+    }
+
+    if (!res.ok && !data?.error) {
+      throw new Error("HTTP " + res.status);
+    }
+
+    if (data?.error === "admin session expired") {
+      logout();
+      throw new Error("Admin session expired. Dobara login karo.");
+    }
+
+    return data;
+  }
+
+  async function testApi() {
+    saveConfig();
+
+    try {
+      const r = await api("/sub/plans", {});
+      if (r.ok) {
+        $("loginMsg").textContent = "API OK. Signature working.";
+      } else {
+        $("loginMsg").textContent = "API error: " + (r.error || "unknown");
+      }
+    } catch (e) {
+      $("loginMsg").textContent = "API fail: " + e.message;
+    }
+  }
+
+  // ===============================================
+  // AUTH / APP STATE
+  // ===============================================
+
+  async function login() {
+    saveConfig();
+
+    try {
+      const r = await api("/admin/login", {
+        username: $("adminUser").value.trim(),
+        password: $("adminPass").value,
+        pin: $("adminPin").value
+      });
+
+      if (!r.ok) {
+        $("loginMsg").textContent = r.error || "Login failed";
+        return;
+      }
+
+      localStorage.setItem("vp_token", r.token);
+      localStorage.setItem("vp_role", r.role || "");
+      localStorage.setItem("vp_name", r.name || "");
+
+      $("adminStatus").textContent = "Admin: " + (r.name || r.role || "admin");
+      $("loginView").classList.add("hidden");
+      $("appView").classList.remove("hidden");
+
+      await loadAll();
+    } catch (e) {
+      $("loginMsg").textContent = e.message;
+    }
+  }
+
+  function logout() {
+    localStorage.removeItem("vp_token");
+    localStorage.removeItem("vp_role");
+    localStorage.removeItem("vp_name");
+
+    $("appView").classList.add("hidden");
+    $("loginView").classList.remove("hidden");
+  }
+
+  function setTab(name) {
+    document.querySelectorAll(".tabBtn").forEach(b => {
+      b.classList.toggle("active", b.dataset.tab === name);
+    });
+
+    document.querySelectorAll(".tabSection").forEach(s => {
+      s.classList.add("hidden");
+    });
+
+    $("tab-" + name).classList.remove("hidden");
+  }
+
+  async function loadAll() {
+    await Promise.allSettled([
+      loadSkills(),
+      loadUsers(),
+      loadPlans(),
+      loadFeatures(),
+      loadLedger(),
+      loadUpdates(),
+      loadReports(),
+      loadAudit(),
+      loadTickets(),
+      loadSettings()
+    ]);
+  }
+
+  // ===============================================
+  // SKILLS / SETTINGS
+  // ===============================================
+
+  function getSetting(key) {
+    const row = settingsCache.find(s =>
+      s.setting_key === key || s.key === key
+    );
+    return row ? String(row.value || "") : "";
+  }
+
+  async function loadSettings() {
+    const r = await api("/admin/settings", { op: "list" });
+    if (!r.ok) return;
+
+    settingsCache = r.settings || [];
+    renderSettings();
+    loadSkillInputs();
+  }
+
+  function loadSkillInputs() {
+    $("legit_text_skill").value = getSetting(SKILL_KEYS.legit_text);
+    $("legit_image_skill").value = getSetting(SKILL_KEYS.legit_image);
+    $("prime_text_skill").value = getSetting(SKILL_KEYS.prime_text);
+    $("prime_image_skill").value = getSetting(SKILL_KEYS.prime_image);
+    $("legacy_skill_link").value = getSetting(SKILL_KEYS.legacy);
+  }
+
+  async function loadSkills() {
+    await loadSettings();
+  }
+
+  async function saveSkill(type) {
+    const inputMap = {
+      legit_text: "legit_text_skill",
+      legit_image: "legit_image_skill",
+      prime_text: "prime_text_skill",
+      prime_image: "prime_image_skill",
+      legacy: "legacy_skill_link"
+    };
+
+    const key = SKILL_KEYS[type];
+    const value = $(inputMap[type]).value.trim();
+
+    const r = await api("/admin/settings", {
+      op: "set",
+      key,
+      value
+    });
+
+    if (!r.ok) return alert(r.error || "Save failed");
+
+    alert("Saved: " + key);
+    await loadSettings();
+  }
+
+  function renderSettings() {
+    $("settingsTable").innerHTML = settingsCache.map(s => `
+      <tr>
+        <td>${esc(s.setting_key || s.key)}</td>
+        <td>${esc(s.value)}</td>
+      </tr>
+    `).join("");
+  }
+
+  async function saveSettingForm() {
+    const key = $("setting_key").value.trim();
+    const value = $("setting_value").value;
+
+    if (!key) return alert("Key required");
+
+    const r = await api("/admin/settings", {
+      op: "set",
+      key,
+      value
+    });
+
+    if (!r.ok) return alert(r.error || "Setting save failed");
+
+    alert("Setting saved");
+    await loadSettings();
+  }
+
+  // ===============================================
+  // USERS
+  // ===============================================
+
+  async function loadUsers() {
+    const r = await api("/admin/users", { op: "list" });
+
+    if (!r.ok) {
+      alert(r.error || "Users load failed");
+      return;
+    }
+
+    usersCache = r.users || [];
+    plansCache = r.plans || plansCache;
+
+    renderPlanSelects();
+    renderUsers();
+  }
+
+  function renderPlanSelects() {
+    const options = plansCache.map(p =>
+      `<option value="${esc(p.plan_id)}">${esc(p.plan_id)} — ${esc(p.name)}</option>`
+    ).join("");
+
+    $("edit_plan_id").innerHTML = options;
+  }
+
+  function renderUsers() {
+    const q = ($("userSearch").value || "").toLowerCase();
+
+    const rows = usersCache.filter(u => {
+      const hit = [
+        u.user_id,
+        u.name,
+        u.phone,
+        u.plan_id,
+        u.status,
+        u.device_id
+      ].filter(Boolean).join(" ").toLowerCase();
+
+      return hit.includes(q);
+    });
+
+    $("usersTable").innerHTML = rows.map(u => `
+      <tr>
+        <td>
+          <b>${esc(u.user_id)}</b><br>
+          <span class="muted">${esc(u.name || "")}</span>
+        </td>
+        <td>${esc(u.phone || "")}</td>
+        <td>${esc(u.plan_id || "")}</td>
+        <td>${esc(u.status || "")}</td>
+        <td>${dt(u.expiry_date)}</td>
+        <td>${esc(u.coins ?? 0)}</td>
+        <td>${esc(u.gen_count ?? u.renders_count ?? 0)}</td>
+        <td title="${esc(u.device_id || "")}">${esc((u.device_id || "").slice(0, 18))}</td>
+        <td>
+          <button class="small secondary" onclick="openUserModal('edit','${esc(u.user_id)}')">Edit</button>
+          <button class="small" onclick="extendUser('${esc(u.user_id)}')">+ Days</button>
+          <button class="small danger" onclick="deleteUser('${esc(u.user_id)}')">Del</button>
+        </td>
+      </tr>
+    `).join("");
+  }
+
+  function openUserModal(mode, userId = "") {
+    userModalMode = mode;
+
+    $("userModalTitle").textContent = mode === "create" ? "Create User" : "Edit User: " + userId;
+
+    const fields = [
+      "user_id","name","phone","email","city","plan_id","status",
+      "expiry_date","coins","max_devices","gen_count","device_id",
+      "licence_key","notes"
+    ];
+
+    fields.forEach(f => {
+      $("edit_" + f).value = "";
+    });
+
+    if (mode === "edit") {
+      const u = usersCache.find(x => x.user_id === userId);
+      if (!u) return alert("User not found in cache");
+
+      $("edit_user_id").value = u.user_id || "";
+      $("edit_user_id").disabled = true;
+
+      $("edit_name").value = u.name || "";
+      $("edit_phone").value = u.phone || "";
+      $("edit_email").value = u.email || "";
+      $("edit_city").value = u.city || "";
+      $("edit_plan_id").value = u.plan_id || "";
+      $("edit_status").value = u.status || "pending";
+      $("edit_expiry_date").value = toLocalInput(u.expiry_date);
+      $("edit_coins").value = u.coins ?? 0;
+      $("edit_max_devices").value = u.max_devices ?? 1;
+      $("edit_gen_count").value = u.gen_count ?? u.renders_count ?? 0;
+      $("edit_device_id").value = u.device_id || "";
+      $("edit_notes").value = u.notes || "";
+    } else {
+      $("edit_user_id").disabled = false;
+      $("edit_status").value = "pending";
+      $("edit_max_devices").value = 1;
+      $("edit_coins").value = 0;
+    }
+
+    $("userModal").classList.remove("hidden");
+  }
+
+  function closeUserModal() {
+    $("userModal").classList.add("hidden");
+  }
+
+  async function saveUserModal() {
+    const userId = $("edit_user_id").value.trim();
+
+    const exp = $("edit_expiry_date").value;
+    const expiry_iso = exp ? new Date(exp).toISOString() : "";
+
+    const base = {
+      name: $("edit_name").value.trim(),
+      phone: $("edit_phone").value.trim(),
+      email: $("edit_email").value.trim(),
+      city: $("edit_city").value.trim(),
+      plan_id: $("edit_plan_id").value,
+      status: $("edit_status").value,
+      coins: Number($("edit_coins").value || 0),
+      max_devices: Number($("edit_max_devices").value || 1),
+      device_id: $("edit_device_id").value.trim(),
+      notes: $("edit_notes").value.trim()
+    };
+
+    if (expiry_iso) base.expiry_date = expiry_iso;
+
+    const licence_key = $("edit_licence_key").value.trim();
+    if (licence_key) base.licence_key = licence_key;
+
+    if (userModalMode === "create") {
+      const payload = {
+        op: "create",
+        user_id: userId,
+        ...base
+      };
+
+      const gen = $("edit_gen_count").value;
+      if (gen) payload.gen_count = Number(gen);
+
+      const r = await api("/admin/users", payload);
+
+      if (!r.ok) return alert(r.error || "Create failed");
+
+      alert("Created user: " + r.user_id + "\nKey: " + (r.licence_key || ""));
+      closeUserModal();
+      await loadUsers();
+      return;
+    }
+
+    if (!userId) return alert("User ID missing");
+
+    const patch = { ...base };
+
+    const gen = $("edit_gen_count").value;
+    if (gen) patch.gen_count = Number(gen);
+
+    const r = await api("/admin/users", {
+      op: "update",
+      user_id: userId,
+      patch
+    });
+
+    if (!r.ok) return alert(r.error || "Update failed");
+
+    alert("Updated");
+    closeUserModal();
+    await loadUsers();
+  }
+
+  async function extendUser(userId) {
+    const days = prompt("Kitne days extend karna hai?", "30");
+    if (!days) return;
+
+    const r = await api("/admin/users", {
+      op: "extend",
+      user_id: userId,
+      days: Number(days)
+    });
+
+    if (!r.ok) return alert(r.error || "Extend failed");
+
+    alert("Expiry: " + (r.expiry || ""));
+    await loadUsers();
+  }
+
+  async function deleteUser(userId) {
+    if (!confirm("Delete user " + userId + "?")) return;
+
+    const r = await api("/admin/users", {
+      op: "delete",
+      user_id: userId
+    });
+
+    if (!r.ok) return alert(r.error || "Delete failed");
+
+    alert("Deleted");
+    await loadUsers();
+  }
+
+  // ===============================================
+  // PLANS
+  // ===============================================
+
+  async function loadPlans() {
+    const r = await api("/admin/plans", { op: "list" });
+
+    if (!r.ok) {
+      alert(r.error || "Plans load failed");
+      return;
+    }
+
+    plansCache = (r.plans || []).map(normalizePlan);
+    renderPlans();
+    renderPlanSelects();
+  }
+
+  function normalizePlan(p) {
+    const x = { ...p };
+
+    if (typeof x.features_json === "string") {
+      try {
+        x.features_json = JSON.parse(x.features_json);
+      } catch (e) {}
+    }
+
+    return x;
+  }
+
+  function renderPlans() {
+    $("plansTable").innerHTML = plansCache.map(p => `
+      <tr>
+        <td>${esc(p.plan_id)}</td>
+        <td>${esc(p.name)}</td>
+        <td>${esc(p.price ?? 0)}</td>
+        <td>${esc(p.price_annual ?? "-")}</td>
+        <td>${esc(p.duration_days ?? 0)}</td>
+        <td>${esc(p.plan_order ?? 0)}</td>
+        <td>${p.show_in_app ? "Yes" : "No"}</td>
+        <td>${p.active ? "Yes" : "No"}</td>
+        <td>
+          <button class="small secondary" onclick="editPlan('${esc(p.plan_id)}')">Edit</button>
+        </td>
+      </tr>
+    `).join("");
+  }
+
+  function editPlan(planId) {
+    const p = plansCache.find(x => x.plan_id === planId);
+    if (!p) return;
+
+    $("planJson").value = JSON.stringify(p, null, 2);
+  }
+
+  function newPlanTemplate() {
+    const tpl = {
+      plan_id: "PLAN_NEW",
+      name: "New Plan",
+      price: 999,
+      price_annual: 9990,
+      annual_discount_pct: 17,
+      price_first_month: null,
+      badge: "",
+      plan_order: 4,
+      duration_days: 30,
+      features_json: [
+        "video_generation",
+        "live_view",
+        "support_tickets"
+      ],
+      coins_per_cycle: 500,
+      max_devices: 1,
+      daily_limit: 30,
+      gen_limit: null,
+      active: true,
+      show_in_app: true
+    };
+
+    $("planJson").value = JSON.stringify(tpl, null, 2);
+  }
+
+  async function savePlan() {
+    let obj;
+
+    try {
+      obj = JSON.parse($("planJson").value);
+    } catch (e) {
+      return alert("Plan JSON invalid hai");
+    }
+
+    if (!obj.plan_id) return alert("plan_id required");
+
+    const r = await api("/admin/plans", {
+      op: "save",
+      ...obj
+    });
+
+    if (!r.ok) return alert(r.error || "Plan save failed");
+
+    alert("Plan saved");
+    await loadPlans();
+  }
+
+  // ===============================================
+  // FEATURES
+  // ===============================================
+
+  async function loadFeatures() {
+    const r = await api("/admin/features", { op: "list" });
+
+    if (!r.ok) {
+      alert(r.error || "Features load failed");
+      return;
+    }
+
+    featuresCache = r.features || [];
+    renderFeatures();
+  }
+
+  function renderFeatures() {
+    $("featuresTable").innerHTML = featuresCache.map(f => `
+      <tr>
+        <td>${esc(f.feature_key)}</td>
+        <td>${esc(f.display_name || "")}</td>
+        <td>${esc(f.status || "")}</td>
+        <td>${esc(f.min_plan || "")}</td>
+        <td>${f.beta_only ? "Yes" : "No"}</td>
+        <td>
+          <button class="small secondary" onclick="setFeature('${esc(f.feature_key)}')">Set</button>
+          <button class="small danger" onclick="deleteFeature('${esc(f.feature_key)}')">Del</button>
+        </td>
+      </tr>
+    `).join("");
+  }
+
+  async function createFeature() {
+    const payload = {
+      op: "create",
+      feature_key: $("feature_key").value.trim(),
+      display_name: $("feature_display_name").value.trim(),
+      status: $("feature_status").value,
+      min_plan: $("feature_min_plan").value.trim(),
+      message_en: $("feature_message_en").value.trim(),
+      message_hi: $("feature_message_hi").value.trim()
+    };
+
+    if (!payload.feature_key) return alert("Feature key required");
+
+    const r = await api("/admin/features", payload);
+
+    if (!r.ok) return alert(r.error || "Feature save failed");
+
+    alert("Feature saved");
+    await loadFeatures();
+  }
+
+  async function setFeature(featureKey) {
+    const status = prompt("Status (on / off / soon / beta)", "on");
+    if (!status) return;
+
+    const r = await api("/admin/features", {
+      op: "set",
+      feature_key: featureKey,
+      status
+    });
+
+    if (!r.ok) return alert(r.error || "Feature update failed");
+
+    await loadFeatures();
+  }
+
+  async function deleteFeature(featureKey) {
+    if (!confirm("Delete feature " + featureKey + "?")) return;
+
+    const r = await api("/admin/features", {
+      op: "delete",
+      feature_key: featureKey
+    });
+
+    if (!r.ok) return alert(r.error || "Delete failed");
+
+    await loadFeatures();
+  }
+
+  // ===============================================
+  // COINS
+  // ===============================================
+
+  async function loadLedger() {
+    const userId = $("coin_user_id").value.trim();
+
+    const r = await api("/admin/coins", {
+      op: "ledger",
+      user_id: userId || undefined
+    });
+
+    if (!r.ok) return alert(r.error || "Ledger load failed");
+
+    const ledger = r.ledger || [];
+
+    $("ledgerTable").innerHTML = ledger.map(x => `
+      <tr>
+        <td>${dt(x.timestamp)}</td>
+        <td>${esc(x.user_id)}</td>
+        <td>${esc(x.type)}</td>
+        <td>${esc(x.amount)}</td>
+        <td>${esc(x.balance_after)}</td>
+        <td>${esc(x.reason || "")}</td>
+      </tr>
+    `).join("");
+  }
+
+  async function coinOp(op) {
+    const payload = {
+      op,
+      user_id: $("coin_user_id").value.trim(),
+      amount: Number($("coin_amount").value || 0),
+      reason: $("coin_reason").value.trim()
+    };
+
+    if (!payload.user_id) return alert("User ID required");
+
+    const r = await api("/admin/coins", payload);
+
+    if (!r.ok) return alert(r.error || "Coin op failed");
+
+    alert("Balance: " + r.balance);
+    await loadLedger();
+  }
+
+  // ===============================================
+  // UPDATES
+  // ===============================================
+
+  async function loadUpdates() {
+    const r = await api("/admin/updates", { op: "list" });
+
+    if (!r.ok) return alert(r.error || "Updates load failed");
+
+    const updates = r.updates || [];
+
+    $("updatesTable").innerHTML = updates.map(u => `
+      <tr>
+        <td>${esc(u.version)}</td>
+        <td>${esc(u.target_user || "ALL")}</td>
+        <td>${esc(u.rollout_pct ?? 100)}</td>
+        <td>${u.mandatory ? "Yes" : "No"}</td>
+        <td>${u.active ? "Yes" : "No"}</td>
+        <td>${dt(u.released_at)}</td>
+      </tr>
+    `).join("");
+  }
+
+  async function fileSha256(file) {
+    const buf = await file.arrayBuffer();
+    const digest = await crypto.subtle.digest("SHA-256", buf);
+    return buf2hex(digest);
+  }
+
+  async function uploadAndPublish() {
+    const fileInput = $("update_file");
+    const file = fileInput.files && fileInput.files[0];
+
+    if (!file) return alert("Pehle ZIP file select karo");
+
+    const version = $("update_version").value.trim();
+    if (!version) return alert("Version required");
+
+    const path = file.name.replace(/[^A-Za-z0-9._-]/g, "_");
+
+    try {
+      // 1. upload URL lao
+      const up = await api("/admin/updates", {
+        op: "upload_url",
+        path
+      });
+
+      if (!up.ok || !up.upload_url) {
+        return alert(up.error || "Upload URL nahi mila");
+      }
+
+      // 2. file upload
+      const fd = new FormData();
+      fd.append("file", file);
+
+      const uploadRes = await fetch(up.upload_url, {
+        method: "POST",
+        body: fd
+      });
+
+      let uploadJson = {};
+      try {
+        uploadJson = await uploadRes.json();
+      } catch (e) {}
+
+      if (!uploadRes.ok || !uploadJson.ok) {
+        return alert("Upload failed: " + (uploadJson.error || uploadRes.status));
+      }
+
+      // 3. sha256 + publish
+      const sha = await fileSha256(file);
+
+      const pub = await api("/admin/updates", {
+        op: "publish",
+        version,
+        path: up.path || path,
+        sha256: sha,
+        size: file.size,
+        changelog: $("update_changelog").value.trim(),
+        mandatory: $("update_mandatory").value === "1",
+        rollout_pct: Number($("update_rollout").value || 100),
+        target_user: $("update_target").value.trim() || "ALL"
+      });
+
+      if (!pub.ok) return alert(pub.error || "Publish failed");
+
+      alert("Update published: " + version);
+      await loadUpdates();
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  // ===============================================
+  // REPORTS
+  // ===============================================
+
+  async function loadReports() {
+    const r = await api("/admin/reports", { type: "daily" });
+
+    if (!r.ok) {
+      $("reportsBox").textContent = r.error || "Reports fail";
+      return;
+    }
+
+    const rep = r.report || {};
+
+    $("reportsBox").innerHTML = `
+      <div class="row">
+        <div class="card">
+          <h3>New Users</h3>
+          <h1>${esc(rep.daily?.new_users ?? 0)}</h1>
+        </div>
+        <div class="card">
+          <h3>Logins</h3>
+          <h1>${esc(rep.daily?.logins ?? 0)}</h1>
+        </div>
+        <div class="card">
+          <h3>Expiring 7d</h3>
+          <h1>${esc(rep.daily?.expiring_7d ?? 0)}</h1>
+        </div>
+        <div class="card">
+          <h3>Total Users</h3>
+          <h1>${esc(rep.totals?.users ?? 0)}</h1>
+        </div>
+      </div>
+
+      <h3 style="margin-top:14px">Expiring Users</h3>
+      <div class="tableWrap">
+        <table>
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Name</th>
+              <th>Plan</th>
+              <th>Expiry</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${(rep.expiring_list || []).map(u => `
+              <tr>
+                <td>${esc(u.user_id)}</td>
+                <td>${esc(u.name || "")}</td>
+                <td>${esc(u.plan_id || "")}</td>
+                <td>${dt(u.expiry_date)}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  // ===============================================
+  // AUDIT
+  // ===============================================
+
+  async function loadAudit() {
+    const r = await api("/admin/audit", {});
+
+    if (!r.ok) return alert(r.error || "Audit fail");
+
+    const rows = r.audit || [];
+
+    $("auditTable").innerHTML = rows.map(x => `
+      <tr>
+        <td>${esc(x.timestamp || "")}</td>
+        <td>${esc(x.admin_id || "")}</td>
+        <td>${esc(x.action || "")}</td>
+        <td>${esc(x.target_user || "")}</td>
+        <td>${esc(x.new_value || "")}</td>
+      </tr>
+    `).join("");
+  }
+
+  // ===============================================
+  // TICKETS
+  // ===============================================
+
+  async function loadTickets() {
+    const r = await api("/admin/tickets", { op: "list" });
+
+    if (!r.ok) return alert(r.error || "Tickets fail");
+
+    const tickets = r.tickets || [];
+
+    $("ticketsTable").innerHTML = tickets.map(t => `
+      <tr>
+        <td>${esc(t.ticket_id)}</td>
+        <td>${esc(t.user_id || "")}</td>
+        <td>${esc(t.subject || "")}</td>
+        <td>${esc(t.status || "")}</td>
+        <td>${dt(t.created_at)}</td>
+        <td>
+          <button class="small secondary" onclick="replyTicket('${esc(t.ticket_id)}')">Reply</button>
+        </td>
+      </tr>
+    `).join("");
+  }
+
+  async function replyTicket(ticketId) {
+    const message = prompt("Reply message:");
+    if (!message) return;
+
+    const status = prompt("Status (replied / closed / open)", "replied");
+    if (!status) return;
+
+    const r = await api("/admin/tickets", {
+      op: "reply",
+      ticket_id: ticketId,
+      message,
+      status
+    });
+
+    if (!r.ok) return alert(r.error || "Reply failed");
+
+    await loadTickets();
+  }
+
+  // ===============================================
+  // INIT
+  // ===============================================
+
+  loadConfigInputs();
+
+  if (localStorage.getItem("vp_token")) {
+    $("loginView").classList.add("hidden");
+    $("appView").classList.remove("hidden");
+    $("adminStatus").textContent = "Admin: " + (localStorage.getItem("vp_name") || localStorage.getItem("vp_role") || "admin");
+
+    loadAll().catch(console.error);
+  }
+</script>
+</body>
+</html>

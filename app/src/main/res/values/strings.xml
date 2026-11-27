@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">VidoPro AI</string>
+    <string name="splash_tagline">Seedance 2.5 Mobile Studio</string>
+    <string name="splash_verifying">Verifying device license…</string>
+    <string name="license_activate_title">Activate License</string>
+    <string name="license_activate_subtitle">Bind your hardware Device ID to unlock VidoPro AI and Seedance 2.5 Fire Mode.</string>
+    <string name="license_key_label">License Key</string>
+    <string name="license_activate_button">Activate License</string>
+    <string name="license_trial_button">Start Free Trial</string>
+    <string name="access_denied_title">Access Denied</string>
+    <string name="contact_support_whatsapp">Contact Support on WhatsApp</string>
+    <string name="fire_mode_badge">Seedance 2.5 · Fire Mode</string>
+    <string name="fire_mode_ignite">Generate with Fire Mode</string>
+    <string name="magic_enhance">Magic Enhance</string>
+    <string name="nav_home">Studio</string>
+    <string name="nav_fire">Fire Mode</string>
+    <string name="nav_motion">Motion</string>
+    <string name="nav_profile">Profile</string>
+</resources>

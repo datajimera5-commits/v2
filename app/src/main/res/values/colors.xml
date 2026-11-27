@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="vidopro_bg">#FF0F172A</color>
+    <color name="vidopro_surface">#FF1E293B</color>
+    <color name="vidopro_fire_orange">#FFF97316</color>
+    <color name="vidopro_electric_blue">#FF3B82F6</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>

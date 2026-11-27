@@ -1,0 +1,6 @@
+{
+  "name": "VidoPro AI",
+  "description": "AI video and image creation studio with Seedance 2.5 Fire Mode, Motion Control, and prompt enhancement.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
